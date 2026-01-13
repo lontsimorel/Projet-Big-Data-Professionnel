@@ -1,0 +1,13 @@
+FROM python:3.13.1
+
+# Installation des dépendances
+RUN apt-get update && apt-get install -y curl nano && apt-get clean
+
+# Installation de JupyterLab
+RUN pip install jupyterlab pyspark==3.5.1 pandas numpy matplotlib
+
+# Dossier de travail
+WORKDIR /home/jupyter
+
+# Commande de lancement
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--allow-root", "--NotebookApp.token=''"]

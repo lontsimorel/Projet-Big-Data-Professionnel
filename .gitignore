@@ -1,0 +1,7 @@
+# Ne pas versionner les gros fichiers
+Data/
+Modeles/
+*.parquet
+*.snappy.parquet
+*.csv
+*.zip

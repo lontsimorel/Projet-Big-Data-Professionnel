@@ -1,0 +1,54 @@
+version: "3.8"   # Version du format Docker Compose utilisé
+
+services:       
+
+  spark-master: 
+    build:
+      context: .                
+      dockerfile: Dockerfile.spark   # Nom du Dockerfile à utiliser
+    container_name: spark-master     # Nom explicite du conteneur
+    hostname: spark-master           # Nom d'hôte interne au réseau Docker
+    command: ["/opt/spark/sbin/start-master.sh", "-h", "spark-master"]
+    # Commande lancée automatiquement au démarrage pour lancer le master Spark
+
+    ports:
+      - "7077:7077"   # Port utilisé par Spark pour recevoir les workers
+      - "8080:8080"   # Interface web du Spark Master 
+
+    environment:
+      - SPARK_MODE=master  
+
+  spark-worker:   
+    build:
+      context: .                
+      dockerfile: Dockerfile.spark
+    container_name: spark-worker  # Nom du conteneur
+    hostname: spark-worker        # Nom d’hôte interne Docker
+
+    command: ["/opt/spark/sbin/start-worker.sh", "spark://spark-master:7077"]
+    # Le worker se connecte automatiquement au master Spark 
+
+    depends_on:
+      - spark-master  
+  jupyter:  
+    build:
+      context: .                   
+      dockerfile: Dockerfile.jupyter
+    container_name: jupyterlab      # Nom explicite du conteneur Jupyter
+    hostname: jupyterlab            # Nom d’hôte pour Spark
+
+    ports:
+      - "8888:8888"   
+
+    volumes:
+      - ./Notebooks:/home/jupyter/notebooks   
+      - ./Data:/home/jupyter/data             
+      - ./Modeles:/home/jupyter/modeles       
+
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      # Permet à PySpark dans JupyterLab de se connecter au cluster Spark
+
+    depends_on:
+      - spark-master  
+      - spark-worker

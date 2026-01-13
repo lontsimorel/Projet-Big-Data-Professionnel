@@ -1,0 +1,29 @@
+# Image légère contenant Java
+FROM eclipse-temurin:17-jdk
+
+# Version de Spark à installer
+ENV SPARK_VERSION=3.5.1
+ENV HADOOP_VERSION=3
+
+# Installation des dépendances
+RUN apt-get update && apt-get install -y curl bash && apt-get clean
+
+# Téléchargement de Spark
+RUN curl -L http://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz \
+    | tar -xz -C /opt/
+
+# Création d’un lien simple
+RUN ln -s /opt/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION} /opt/spark
+
+# Ajout des configurations Spark
+COPY spark-env.sh /opt/spark/conf/spark-env.sh
+COPY spark-defaults.conf /opt/spark/conf/spark-defaults.conf
+COPY workers /opt/spark/conf/workers
+
+# Permet les scripts Spark
+RUN chmod +x /opt/spark/sbin/*
+
+# Dossier de travail
+WORKDIR /opt/spark
+
+CMD ["/bin/bash"]
